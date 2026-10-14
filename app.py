@@ -1,4 +1,6 @@
 from flask import Flask 
+from werkzeug.middleware.dispatcher import DispatcherMiddleware
+from werkzeug.serving import run_simple
 
 app1 = Flask ("app1")
 app2 = Flask ("app2")
@@ -47,6 +49,20 @@ def info ():
         "name" : app3.config["APP_NAME"], 
     "version" : app3.config["APP_VERSION"]
     }
+wsgi_application = DispatcherMiddleware (app1 , {
+    "/app1": app1,
+    "/app2": app2,
+    "/app3": app3,
+})
+
 
 if __name__ == "__main__":
-    app1.run(debug=True)
+    run_simple(
+        hostname="127.0.0.1",       
+        port=5000,                  
+        application=wsgi_application,    
+        use_debugger=True,         
+        use_reloader=True          
+    )
+
+
