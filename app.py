@@ -1,7 +1,6 @@
-from flask import Flask 
+from flask import Flask  , url_for , current_app , request
 from werkzeug.middleware.dispatcher import DispatcherMiddleware
 from werkzeug.serving import run_simple
-from flask import current_app
 
 
 app1 = Flask ("app1")
@@ -35,6 +34,35 @@ def inspect_app1():
     return inspect_application()
 
 
+# ---------- Dynamic Routing Experiment ----------
+
+@app1.route("/users/<int:user_id>")
+def get_user(user_id):
+
+    return {
+        "application": current_app.name,
+        "user_id": user_id,
+        "python_type": type(user_id).__name__
+    }
+@app1.route("/users/<int:user_id>/posts/<int:post_id>")
+def get_user_post(user_id, post_id):
+
+    return {
+        "user_id": user_id,
+        "post_id": post_id,
+        "user_id_type": type(user_id).__name__,
+        "post_id_type": type(post_id).__name__
+    }
+@app1.route("/url_finder")
+def url_finder():
+    url = url_for("get_user_post" , user_id =50 , post_id =100)
+    app = current_app.name
+    return {
+        "URL" : url, 
+        "current_app" : app
+    }
+
+
 @app2.route("/")
 def home ():
     return "Hello From Application TWO"
@@ -46,6 +74,11 @@ def info ():
         "version" : app2.config["APP_VERSION"]
     }
 @app2.route("/inspect")
+def incoming_inspector():
+    return inspect_endpoint_resolution()
+
+
+@app2.route("/application-inspect")
 def inspect_app2 ():
     return inspect_application()
 
@@ -57,11 +90,19 @@ def app3_home():
 def info ():
     return {
         "name" : app3.config["APP_NAME"], 
-    "version" : app3.config["APP_VERSION"]
+        "version" : app3.config["APP_VERSION"]
     }
 @app3.route("/inspect")
 def inspect_app3():
     return inspect_application()
+
+@app3.route("/files/<path:filename>")
+def get_file_path(filename):
+    return {
+        "application": "app3",
+        "filename": filename,
+        "python_type": type(filename).__name__
+    }
 
 def inspect_application():
 
@@ -103,7 +144,23 @@ def inspect_application():
         "endpoint_mapping": endpoint_mapping
     }
 
-    
+def inspect_endpoint_resolution():
+    app = current_app
+    endpoint = request.endpoint
+    function = app.view_functions.get(endpoint)
+
+    return {
+        "incoming_request_url": request.url,
+        "matched_rule": request.url_rule.rule if request.url_rule else None,
+        "endpoint": endpoint,
+        "incoming_arguments": request.args.to_dict(),
+        "view_arguments": request.view_args,
+        "function": function.__name__ if function else None,
+    }
+
+
+
+   
     
 
 
@@ -123,5 +180,4 @@ if __name__ == "__main__":
         use_debugger=True,         
         use_reloader=True          
     )
-
 
