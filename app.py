@@ -20,81 +20,60 @@ app3.config["APP_VERSION"] = "3.0"
 app3.config["DEBUG_MODE"] = True
 
 
+# Application 1 routes
+
 @app1.route("/")
-def home ():
+def home():
     return "Hello From Application One"
-@app1.route("/info")
-def info ():
-    return {
-        "name": app1.config["APP_NAME"],
-        "version": app1.config["APP_VERSION"]
-    }
-@app1.route("/inspect")
-def inspect_app1():
-    return inspect_application()
 
-
-# ---------- Dynamic Routing Experiment ----------
 
 @app1.route("/users/<int:user_id>")
 def get_user(user_id):
-
     return {
         "application": current_app.name,
         "user_id": user_id,
         "python_type": type(user_id).__name__
     }
+
+
 @app1.route("/users/<int:user_id>/posts/<int:post_id>")
 def get_user_post(user_id, post_id):
-
     return {
         "user_id": user_id,
         "post_id": post_id,
         "user_id_type": type(user_id).__name__,
         "post_id_type": type(post_id).__name__
     }
+
+
 @app1.route("/url_finder")
 def url_finder():
-    url = url_for("get_user_post" , user_id =50 , post_id =100)
+    url = url_for("get_user_post", user_id=50, post_id=100)
     app = current_app.name
     return {
-        "URL" : url, 
-        "current_app" : app
+        "URL": url,
+        "current_app": app
     }
 
+
+# Application 2 routes
 
 @app2.route("/")
-def home ():
+def app2_home():
     return "Hello From Application TWO"
 
-@app2.route("/info")
-def info ():
-    return {
-        "name" : app2.config["APP_NAME"], 
-        "version" : app2.config["APP_VERSION"]
-    }
+
 @app2.route("/inspect")
 def incoming_inspector():
     return inspect_endpoint_resolution()
 
 
-@app2.route("/application-inspect")
-def inspect_app2 ():
-    return inspect_application()
+# Application 3 routes
 
 @app3.route("/")
 def app3_home():
     return "Welcome to Application Three"
 
-@app3.route("/info")
-def info ():
-    return {
-        "name" : app3.config["APP_NAME"], 
-        "version" : app3.config["APP_VERSION"]
-    }
-@app3.route("/inspect")
-def inspect_app3():
-    return inspect_application()
 
 @app3.route("/files/<path:filename>")
 def get_file_path(filename):
@@ -103,6 +82,35 @@ def get_file_path(filename):
         "filename": filename,
         "python_type": type(filename).__name__
     }
+
+
+# Shared routes
+
+@app3.route("/info")
+@app2.route("/info")
+@app1.route("/info")
+def info():
+    return {
+        "name": current_app.config["APP_NAME"],
+        "version": current_app.config["APP_VERSION"]
+    }
+
+
+@app3.route("/inspect")
+@app2.route("/inspect")
+@app1.route("/inspect")
+def inspect_app():
+    return inspect_application()
+
+
+@app3.route("/setup")
+@app2.route("/setup")
+@app1.route("/setup")
+def setup():
+    return inspect_application_setup()
+
+
+# Shared helper functions
 
 def inspect_application():
 
@@ -161,7 +169,7 @@ def inspect_endpoint_resolution():
 def inspect_application_setup():
     app = current_app
     configuration = {
-        "APP_NAME" : app.conifg.get["APP_NAME"],
+        "APP_NAME" : app.config.get("APP_NAME"),
         "APP_VERSION": app.config.get("APP_VERSION")
     }
 
