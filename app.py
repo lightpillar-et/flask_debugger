@@ -158,11 +158,22 @@ def inspect_endpoint_resolution():
         "function": function.__name__ if function else None,
     }
 
+def inspect_application_setup():
+    app = current_app
+    configuration = {
+        "APP_NAME" : app.conifg.get["APP_NAME"],
+        "APP_VERSION": app.config.get("APP_VERSION")
+    }
 
-
-   
-    
-
+    return {
+        "application": app.name,
+        "import_name": app.import_name,
+        "configuration": configuration,
+        "debug": app.debug,
+        "testing": app.testing,
+        "registered_routes": len(list(app.url_map.iter_rules())),
+        "registered_functions": len(app.view_functions)
+    }
 
 
 wsgi_application = DispatcherMiddleware (app1 , {
@@ -170,7 +181,6 @@ wsgi_application = DispatcherMiddleware (app1 , {
     "/app2": app2,
     "/app3": app3,
 })
-
 
 if __name__ == "__main__":
     run_simple(
