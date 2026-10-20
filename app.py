@@ -1,6 +1,7 @@
 from flask import Flask  , url_for , current_app , request
 from werkzeug.middleware.dispatcher import DispatcherMiddleware
 from werkzeug.serving import run_simple
+from middleware import DebuggerMiddleware
 
 
 app1 = Flask ("app1")
@@ -109,6 +110,11 @@ def inspect_app():
 def setup():
     return inspect_application_setup()
 
+@app3.route("/environ")
+@app2.route("/environ")
+@app1.route("/environ")
+def environ_inspector():
+    return inspect_wsgi_environ()
 
 # Shared helper functions
 
@@ -183,19 +189,44 @@ def inspect_application_setup():
         "registered_functions": len(app.view_functions)
     }
 
+def inspect_wsgi_environ():
 
-wsgi_application = DispatcherMiddleware (app1 , {
+    environ = request.environ
+
+    return {
+        "application": current_app.name,
+
+        "request_method": environ.get("REQUEST_METHOD"),
+        "script_name": environ.get("SCRIPT_NAME"),
+        "path_info": environ.get("PATH_INFO"),
+        "query_string": environ.get("QUERY_STRING"),
+
+        "server_name": environ.get("SERVER_NAME"),
+        "server_port": environ.get("SERVER_PORT"),
+        "server_protocol": environ.get("SERVER_PROTOCOL"),
+
+        "content_type": environ.get("CONTENT_TYPE"),
+        "content_length": environ.get("CONTENT_LENGTH"),
+
+        "http_host": environ.get("HTTP_HOST"),
+        "user_agent": environ.get("HTTP_USER_AGENT")
+    }
+
+
+dispatcher = DispatcherMiddleware (app1 , {
     "/app1": app1,
     "/app2": app2,
     "/app3": app3,
 })
 
+middleware =  DebuggerMiddleware(dispatcher)
+
 if __name__ == "__main__":
     run_simple(
         hostname="127.0.0.1",       
         port=5000,                  
-        application=wsgi_application,    
+        application=middleware,    
         use_debugger=True,         
-        use_reloader=True          
+        use_reloader=False         
     )
 
