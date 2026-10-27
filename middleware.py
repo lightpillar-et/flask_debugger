@@ -1,5 +1,11 @@
 from request_logger import RequestLogger
 from request_inspector import RequestInspector
+from response_inspector import ResponseInspector
+from execution_timer import ExecutionTimer
+from debug_report import DebugReport
+
+
+
 class DebuggerMiddleware:
 
     def __init__(self, app, show_debug_output=False):
@@ -7,8 +13,15 @@ class DebuggerMiddleware:
         self.show_debug_output = show_debug_output
         self.logger = RequestLogger()
         self.inspector = RequestInspector()
+        self.response_inspector = ResponseInspector()
+        self.timer = ExecutionTimer()
+        
 
     def __call__(self, environ, start_response):
+        # 1. Start timer
+        start_time = self.timer.start()
+        debug_report = DebugReport()
+        debug_report.collect_request(environ)
         if self.show_debug_output:
             print("\n========== 1. INCOMING REQUEST ==========")
             print("Method:", environ.get("REQUEST_METHOD"))
@@ -23,6 +36,7 @@ class DebuggerMiddleware:
         def custom_start_response(status, headers, exc_info=None):
             headers = list(headers)
             headers.append(("Custom-Header", "Custom Header By Inspecting"))
+            debug_report.collect_response(status, headers)
 
             if self.show_debug_output:
                 print("\n========== 3. OUTGOING RESPONSE ==========")
@@ -42,5 +56,12 @@ class DebuggerMiddleware:
 
         if self.show_debug_output:
             print("========== END FLASK PROCESSING ==========\n")
+        
+        duration = self.timer.stop(start_time)
+        self.timer.report(environ, duration)
+        debug_report.collect_duration(duration)
+        if self.show_debug_output:
+            debug_report.display()
+
 
         return response
