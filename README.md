@@ -1,6 +1,6 @@
-# Flask Debugger
-
-**See every request. Find every error. Understand your Flask app faster.**
+ Flask Debugger
+I built this the so called Flask Debugger thing , it is a learning project becuase i spent sometime learning more about and WSGI contracts and the entire request -response cycle. On the comming version i will make this MVP a more real Debugger Tool. Here is the V1.0
+See every request. Find every error. Understand your Flask app faster.
 
 Flask Debugger is a lightweight development middleware that inspects Flask
 requests, responses, errors, and execution time in real time. It includes a
