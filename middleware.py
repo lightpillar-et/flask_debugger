@@ -1,8 +1,10 @@
+from request_logger import RequestLogger
 class DebuggerMiddleware:
 
     def __init__(self, app, show_debug_output=False):
         self.app = app
         self.show_debug_output = show_debug_output
+        self.logger = RequestLogger()
 
     def __call__(self, environ, start_response):
         if self.show_debug_output:
@@ -11,6 +13,9 @@ class DebuggerMiddleware:
             print("Path:", environ.get("PATH_INFO"))
             print("Query String:", environ.get("QUERY_STRING"))
             print("========== END INCOMING REQUEST ==========\n")
+        
+        #using the Request Logger we imported we log the incoming request 
+        self.logger.log(environ)
 
         def custom_start_response(status, headers, exc_info=None):
             headers = list(headers)
