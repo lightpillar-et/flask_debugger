@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Flask Debugger</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='dashboard.css') }}">
+</head>
+<body>
+  <aside class="sidebar">
+    <div class="brand"><span class="brand-mark">&gt;_</span><span>Flask Debugger</span></div>
+    <nav>
+      <a class="nav-link active" href="#overview">Overview</a>
+      <a class="nav-link" href="#requests">Request history</a>
+      <a class="nav-link" href="#performance">Performance</a>
+      <a class="nav-link" href="#errors">Errors</a>
+    </nav>
+    <div class="sidebar-footer"><span class="status-dot"></span> Local development</div>
+  </aside>
+  <main class="content">
+    <header class="topbar"><div><p class="eyebrow">RUNTIME OBSERVABILITY</p><h1>Debug dashboard</h1></div><div class="refresh-status"><span id="last-updated">Waiting for data</span><span class="live-pill">LIVE</span></div></header>
+    <section id="overview" class="stats-grid">
+      <article class="stat-card"><span class="stat-label">Total requests</span><strong id="total-requests">0</strong><span class="stat-icon blue">↗</span></article>
+      <article class="stat-card"><span class="stat-label">Successful</span><strong id="successful-requests">0</strong><span class="stat-icon green">✓</span></article>
+      <article class="stat-card"><span class="stat-label">Errors</span><strong id="error-requests">0</strong><span class="stat-icon red">!</span></article>
+      <article class="stat-card"><span class="stat-label">Average response</span><strong id="average-duration">0 ms</strong><span class="stat-icon purple">◷</span></article>
+    </section>
+    <section id="requests" class="panel">
+      <div class="panel-heading"><div><p class="eyebrow">TRAFFIC</p><h2>Request history</h2></div><div class="filters"><select id="method-filter"><option value="">All methods</option><option>GET</option><option>POST</option><option>PUT</option><option>DELETE</option></select><input id="url-filter" type="search" placeholder="Filter URL"><input id="status-filter" type="number" placeholder="Status" min="100" max="599"></div></div>
+      <div class="table-wrap"><table><thead><tr><th>Method</th><th>URL</th><th>Status</th><th>Duration</th><th>Timestamp</th></tr></thead><tbody id="request-rows"><tr><td colspan="5" class="empty">No requests collected yet.</td></tr></tbody></table></div>
+    </section>
+    <div class="lower-grid">
+      <section id="performance" class="panel"><div class="panel-heading"><div><p class="eyebrow">LATENCY</p><h2>Performance</h2></div></div><div id="performance-content" class="performance-content">No performance data yet.</div></section>
+      <section id="errors" class="panel"><div class="panel-heading"><div><p class="eyebrow">ATTENTION</p><h2>Error monitor</h2></div></div><div id="error-list" class="error-list">No errors recorded.</div></section>
+    </div>
+  </main>
+  <div id="request-modal" class="modal hidden"><div class="modal-card"><button id="close-modal" class="close">×</button><p class="eyebrow">REQUEST DETAIL</p><h2 id="modal-title">Request</h2><pre id="modal-data"></pre></div></div>
+  <script src="{{ url_for('static', filename='dashboard.js') }}"></script>
+</body>
+</html>

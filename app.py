@@ -2,6 +2,8 @@ from flask import Flask  , url_for , current_app , request
 from werkzeug.middleware.dispatcher import DispatcherMiddleware
 from werkzeug.serving import run_simple
 from middleware import DebuggerMiddleware
+from dashboard import create_dashboard_app
+from dashboard.store import RequestHistory
 
 SHOW_DEBUG_OUTPUT = False
 
@@ -273,13 +275,17 @@ def inspect_wsgi_environ():
     }
 
 
+history = RequestHistory(max_records=200)
+dashboard = create_dashboard_app(history)
+
 dispatcher = DispatcherMiddleware (app1 , {
     "/app1": app1,
     "/app2": app2,
     "/app3": app3,
+    "/debug": dashboard,
 })
 
-middleware = DebuggerMiddleware(dispatcher, SHOW_DEBUG_OUTPUT)
+middleware = DebuggerMiddleware(dispatcher, SHOW_DEBUG_OUTPUT, history)
 
 if __name__ == "__main__":
     run_simple(
@@ -289,5 +295,3 @@ if __name__ == "__main__":
         use_debugger=True,         
         use_reloader=False         
     )
-
-
