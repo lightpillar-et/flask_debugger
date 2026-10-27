@@ -1,34 +1,38 @@
 class DebuggerMiddleware:
 
-    def __init__(self, app):
-        # Store the dispatcher
+    def __init__(self, app, show_debug_output=False):
         self.app = app
+        self.show_debug_output = show_debug_output
 
     def __call__(self, environ, start_response):
+        if self.show_debug_output:
+            print("\n========== 1. INCOMING REQUEST ==========")
+            print("Method:", environ.get("REQUEST_METHOD"))
+            print("Path:", environ.get("PATH_INFO"))
+            print("Query String:", environ.get("QUERY_STRING"))
+            print("========== END INCOMING REQUEST ==========\n")
 
-        # 1. BEFORE DISPATCHING — Inspect request
-        print("\n========== INCOMING REQUEST ==========")
-        print("Method:", environ.get("REQUEST_METHOD"))
-        print("Path:", environ.get("PATH_INFO"))
-        print("Query String:", environ.get("QUERY_STRING"))
-
-        # 2. INTERCEPT THE RESPONSE
         def custom_start_response(status, headers, exc_info=None):
+            headers = list(headers)
+            headers.append(("Custom-Header", "Custom Header By Inspecting"))
 
-            print("\n========== OUTGOING RESPONSE ==========")
-            print("Status:", status)
+            if self.show_debug_output:
+                print("\n========== 3. OUTGOING RESPONSE ==========")
+                print("Status:", status)
 
-            print("Headers:")
-            for name, value in headers:
-                print(f"  {name}: {value}")
+                for name, value in headers:
+                    print(f"{name}: {value}")
 
-            print("======================================")
+                print("========== END OUTGOING RESPONSE ==========\n")
 
-            # Forward to the original server callback
             return start_response(status, headers, exc_info)
 
-        # 3. CALL THE DISPATCHER
+        if self.show_debug_output:
+            print("========== 2. FLASK PROCESSING ==========")
+
         response = self.app(environ, custom_start_response)
 
-        # 4. RETURN RESPONSE TO WSGI SERVER
+        if self.show_debug_output:
+            print("========== END FLASK PROCESSING ==========\n")
+
         return response

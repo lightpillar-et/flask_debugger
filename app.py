@@ -3,6 +3,7 @@ from werkzeug.middleware.dispatcher import DispatcherMiddleware
 from werkzeug.serving import run_simple
 from middleware import DebuggerMiddleware
 
+SHOW_DEBUG_OUTPUT = False
 
 app1 = Flask ("app1")
 app2 = Flask ("app2")
@@ -20,12 +21,11 @@ app3.config["APP_NAME"] = "Application THREE"
 app3.config["APP_VERSION"] = "3.0"
 app3.config["DEBUG_MODE"] = True
 
-
 # Application 1 routes
 
 @app1.route("/")
 def home():
-    return "Hello From Application One"
+    return "Hello from App 1!"
 
 
 @app1.route("/users/<int:user_id>")
@@ -57,11 +57,14 @@ def url_finder():
     }
 
 
+
+
+
 # Application 2 routes
 
 @app2.route("/")
 def app2_home():
-    return "Hello From Application TWO"
+    return "Hello from App 2!"
 
 
 @app2.route("/inspect")
@@ -69,11 +72,68 @@ def incoming_inspector():
     return inspect_endpoint_resolution()
 
 
+# Application 2 Life Cycle Hooks 
+
+@app2.before_request
+def before():
+    if SHOW_DEBUG_OUTPUT:
+        print("1. BEFORE REQUEST")
+
+
+@app2.route("/hello")
+def hello():
+    if SHOW_DEBUG_OUTPUT:
+        print("2. VIEW FUNCTION EXECUTED")
+    return "Hello from App 2!"
+
+
+# 3. AFTER REQUEST
+@app2.after_request
+def after(response):
+    if SHOW_DEBUG_OUTPUT:
+        print("3. AFTER REQUEST")
+    return response
+
+
+# 4. TEARDOWN REQUEST
+@app2.teardown_request
+def teardown_request(exception):
+    if SHOW_DEBUG_OUTPUT:
+        print("4. TEARDOWN REQUEST", flush=True)
+
+
+# 5. TEARDOWN APP CONTEXT
+@app2.teardown_appcontext
+def teardown_app(exception):
+    if SHOW_DEBUG_OUTPUT:
+        print("5. TEARDOWN APP CONTEXT")
+
+@app2.route("/error")
+def fake_error():
+    if SHOW_DEBUG_OUTPUT:
+        print("Fake Erro Function Started")
+    raise ValueError("Something went wrong!")
+
+
+@app2.errorhandler(ValueError)
+def handle_value_error(error):
+    if SHOW_DEBUG_OUTPUT:
+        print("ERROR HANDLER EXECUTED")
+        print("Exception:", error)
+
+    return "An error occurred, but Flask handled it!", 400
+
+@app2.errorhandler(404)
+def page_not_found(error):
+    if SHOW_DEBUG_OUTPUT:
+        print(error)
+    return "404 - This route does not exist!", 404
+
 # Application 3 routes
 
 @app3.route("/")
 def app3_home():
-    return "Welcome to Application Three"
+    return "Hello from App 3!"
 
 
 @app3.route("/files/<path:filename>")
@@ -219,7 +279,7 @@ dispatcher = DispatcherMiddleware (app1 , {
     "/app3": app3,
 })
 
-middleware =  DebuggerMiddleware(dispatcher)
+middleware = DebuggerMiddleware(dispatcher, SHOW_DEBUG_OUTPUT)
 
 if __name__ == "__main__":
     run_simple(
@@ -229,4 +289,5 @@ if __name__ == "__main__":
         use_debugger=True,         
         use_reloader=False         
     )
+
 
